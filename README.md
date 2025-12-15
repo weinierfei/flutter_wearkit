@@ -10,7 +10,7 @@ Add the following dependency to your `pubspec.yaml`:
   flutter_wearkit:
     git:
       url: https://github.com/weinierfei/flutter_wearkit.git
-      ref: v1.0.0
+      ref: v1.0.1
 ```
 
 ## 1. Android Native Configuration Guide
