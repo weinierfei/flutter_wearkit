@@ -1,0 +1,87 @@
+group = "com.topstep.flutter_wearkit"
+version = "1.0-SNAPSHOT"
+
+buildscript {
+    ext.kotlin_version = "2.2.0"
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+
+        maven { url = uri("https://maven.aliyun.com/nexus/content/groups/public/") }
+        maven { url = uri("https://maven.aliyun.com/nexus/content/repositories/releases/") }
+        maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://maven.topstepht.com/repository/maven-public/") }
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.9.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+
+        maven { url = uri("https://maven.aliyun.com/nexus/content/groups/public/") }
+        maven { url = uri("https://maven.aliyun.com/nexus/content/repositories/releases/") }
+        maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://maven.topstepht.com/repository/maven-public/") }
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    namespace = "com.topstep.flutter_wearkit"
+
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+        test.java.srcDirs += "src/test/kotlin"
+    }
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    dependencies {
+        def wearkitVer = "3.0.2-SNAPSHOT"
+        def isChanging = wearkitVer.contains("SNAPSHOT")
+        api("com.topstep.wearkit:sdk-base:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-apis:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-core:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-flywear:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-flywear-adapter:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-fitcloud:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-fitcloud-adapter:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-shenju-base:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-shenju-core:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-shenju-opencv:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-shenju-adapter:$wearkitVer") { changing = isChanging }
+        api("com.topstep.wearkit:sdk-prototb-adapter:$wearkitVer") { changing = isChanging }
+
+        api("com.topstep.opus:lib-opustool:1.0.6")
+        api "com.github.kilnn:lib-toolkit:1.0.5"
+        api "androidx.lifecycle:lifecycle-process:2.10.0"
+        api "org.jetbrains.kotlinx:kotlinx-coroutines-rx3:1.10.1"
+
+        api 'androidx.lifecycle:lifecycle-service:2.10.0'
+
+        api "com.tencent.mars:mars-xlog:1.2.6"
+    }
+
+}

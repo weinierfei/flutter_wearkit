@@ -1,0 +1,8 @@
+enum WKActivityAttribute {
+  STEPS,
+  DISTANCE,
+  CALORIES,
+  DURATION,
+  NUMBER,
+  SPORT_DURATION
+}

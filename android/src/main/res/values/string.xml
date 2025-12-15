@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="device_module">Device</string>
+    <string name="sport_module">Sport</string>
+    <string name="ds_find_phone_found">Found mobile phone</string>
+    <string name="ds_find_phone_stop">Click to stop finding</string>
+    <string name="notification_channel_core_name">Core</string>
+    <string name="notification_channel_core_des">Reminders of core interactions</string>
+    <string name="notification_channel_device_des">Reminder of device name and connection status</string>
+    <string name="notification_channel_sport_des">Reminder of ongoing sport</string>
+
+    <string name="device_state_no_device">No device</string>
+    <string name="device_state_bt_disabled">Bluetooth is disabled</string>
+    <string name="device_state_disconnected">Disconnected</string>
+    <string name="device_state_connecting">Connecting</string>
+    <string name="device_state_pre_connected">Please confirm pairing on the wearable device side</string>
+    <string name="device_state_connected">Connected</string>
+</resources>
