@@ -36,7 +36,6 @@ class FlutterWearKit {
 
   FlutterWearKit._internal();
 
-  // 工厂构造函数，始终返回同一个实例
   factory FlutterWearKit() {
     return _instance;
   }
@@ -44,7 +43,6 @@ class FlutterWearKit {
   Future<String?> getPlatformVersion() {
     return FlutterWearkitPlatform.instance.getPlatformVersion();
   }
-
 
   static const MethodChannel _channel = MethodChannel(
     'com.topStep.flywear/native',
@@ -108,13 +106,13 @@ class FlutterWearKit {
 
   // Streams
 
-  /// SDK 初始化完成的 Stream
-  /// 当原生 SDK 初始化完成后，会发送 true
-  /// 上层应用可以监听这个 Stream，在收到回调后进行其他初始化工作
+  /// Stream for SDK initialization completion
+  /// Emits true when the native SDK initialization is complete
+  /// The upper layer application can listen to this Stream and perform other initialization work after receiving the callback
   Stream<bool>? _initializedStream;
   Stream<bool> get initializedStream {
     _initializedStream ??= _initializedChannel.receiveBroadcastStream().map(
-          (event) => event as bool,
+      (event) => event as bool,
     );
     return _initializedStream!;
   }
@@ -122,51 +120,58 @@ class FlutterWearKit {
   Stream<String>? _bleStatusStream;
   Stream<String> get bleStatusStream {
     _bleStatusStream ??= _eventChannel.receiveBroadcastStream().map(
-          (event) => event as String,
+      (event) => event as String,
     );
     return _bleStatusStream!;
   }
 
+  ///  find device status
   Stream<int>? _findStatusStream;
   Stream<int> get findStatusStream {
     _findStatusStream ??= _findChannel.receiveBroadcastStream().map(
-          (event) => event as int,
+      (event) => event as int,
     );
     return _findStatusStream!;
   }
 
+  /// Monitor battery status
   Stream<DeviceBattery>? _batteryStream;
   Stream<DeviceBattery> get batteryStream {
     _batteryStream ??= _batteryChannel.receiveBroadcastStream().map((event) {
-      if (Platform.isAndroid) {
-        final Map<String, dynamic> resultMap = jsonDecode(event);
-        return DeviceBattery.fromJson(resultMap);
-      } else {
-        return DeviceBattery.fromJson(jsonDecode(event));
-      }
+      return DeviceBattery.fromJson(jsonDecode(event));
     });
     return _batteryStream!;
   }
 
+  /// Camera status stream
+  /// 1: Camera close
+  /// 2: Camera open
+  /// 3: Camera take photo(shutter)
+  /// 4: Switch to camera back
+  /// 5: Switch to camera front
+  /// 6: Switch flash off
+  /// 7: Switch flash auto
+  /// 8: Switch flash on
   Stream<int>? _cameraStatusStream;
   Stream<int> get cameraStatusStream {
     _cameraStatusStream ??= _cameraChannel.receiveBroadcastStream().cast<int>();
     return _cameraStatusStream!;
   }
 
+  /// Sync data stream
   Stream<WKSyncData>? _syncDataStream;
   Stream<WKSyncData> get syncDataStream {
     _syncDataStream ??= _syncDataChannel.receiveBroadcastStream().map((event) {
-      if (Platform.isAndroid) {
-        final Map<String, dynamic> resultMap = jsonDecode(event);
-        return WKSyncData.fromJson(resultMap);
-      } else {
-        return WKSyncData.fromJson(jsonDecode(event));
-      }
+      return WKSyncData.fromJson(jsonDecode(event));
     });
     return _syncDataStream!;
   }
 
+  /// Sync data status stream
+  /// -1: Sync failed because wristband disconnect.
+  /// 0: Sync state start
+  /// 127: Sync state success
+  /// -128: Unknown error
   Stream<int>? _syncDataStatusStream;
   Stream<int> get syncDataStatusStream {
     _syncDataStatusStream ??= _syncDataStatusChannel
@@ -186,14 +191,9 @@ class FlutterWearKit {
   Stream<WKBloodPressureItem>? _bpMeasureStream;
   Stream<WKBloodPressureItem> get bpMeasureStream {
     _bpMeasureStream ??= _bpMeasureChannel.receiveBroadcastStream().map((
-        event,
-        ) {
-      if (Platform.isAndroid) {
-        final Map<String, dynamic> resultMap = jsonDecode(event);
-        return WKBloodPressureItem.fromJson(resultMap);
-      } else {
-        return WKBloodPressureItem.fromJson(jsonDecode(event));
-      }
+      event,
+    ) {
+      return WKBloodPressureItem.fromJson(jsonDecode(event));
     });
     return _bpMeasureStream!;
   }
@@ -212,34 +212,37 @@ class FlutterWearKit {
     return _pressureMeasureStream!;
   }
 
+  /// Cloud dial push progress
   Stream<int>? _dialStatusStream;
   Stream<int> get dialStatusStream {
     _dialStatusStream ??= _dialChannel.receiveBroadcastStream().cast<int>();
     return _dialStatusStream!;
   }
 
+  /// OTA push progress
   Stream<int>? _otaStatusStream;
   Stream<int> get otaStatusStream {
     _otaStatusStream ??= _otaChannel.receiveBroadcastStream().cast<int>();
     return _otaStatusStream!;
   }
 
+  /// custom dial push progress
   Stream<ProgressResultBean>? _dialProgressStream;
   Stream<ProgressResultBean> get dialProgressStream {
     _dialProgressStream ??= _customDialProgressChannel
         .receiveBroadcastStream()
         .map((event) {
-      final Map<String, dynamic> resultMap = jsonDecode(event);
-      return ProgressResultBean.fromJson(resultMap);
-    });
+          final Map<String, dynamic> resultMap = jsonDecode(event);
+          return ProgressResultBean.fromJson(resultMap);
+        });
     return _dialProgressStream!;
   }
 
   Stream<List<AlarmBean>?>? _alarmsChangeStream;
   Stream<List<AlarmBean>?> get alarmsChangeStream {
     _alarmsChangeStream ??= _alarmsChangeChannel.receiveBroadcastStream().map((
-        event,
-        ) {
+      event,
+    ) {
       final List<dynamic> jsonList = jsonDecode(event);
       return jsonList.map((json) => AlarmBean.fromJson(json)).toList();
     });
@@ -249,13 +252,14 @@ class FlutterWearKit {
   Stream<WKRaiseWakeupConfig>? _wakeupChangeStream;
   Stream<WKRaiseWakeupConfig> get wakeupChangeStream {
     _wakeupChangeStream ??= _wakeupChangeChannel.receiveBroadcastStream().map((
-        event,
-        ) {
+      event,
+    ) {
       return WKRaiseWakeupConfig.fromJson(jsonDecode(event));
     });
     return _wakeupChangeStream!;
   }
 
+  /// Weather configuration changes
   Stream<bool>? _weatherChangeStream;
   Stream<bool> get weatherChangeStream {
     _weatherChangeStream ??= _weatherChangeChannel
@@ -264,11 +268,12 @@ class FlutterWearKit {
     return _weatherChangeStream!;
   }
 
+  /// Pull log file from device.
   Stream<ProgressResultBean>? _deviceLogStream;
   Stream<ProgressResultBean> get deviceLogStream {
     _deviceLogStream ??= _deviceLogChannel.receiveBroadcastStream().map((
-        event,
-        ) {
+      event,
+    ) {
       final Map<String, dynamic> resultMap = jsonDecode(event);
       return ProgressResultBean.fromJson(resultMap);
     });
@@ -277,18 +282,18 @@ class FlutterWearKit {
 
   // Methods
 
-  /// 绑定或连接设备
+  /// Bind or connect device
   Future<void> connectDevice(
-      int deviceType,
-      int authType,
-      String? authCode,
-      String mac,
-      String userId,
-      bool sex,
-      int age,
-      double height,
-      double weight,
-      ) async {
+    int deviceType,
+    int authType,
+    String? authCode,
+    String mac,
+    String userId,
+    bool sex,
+    int age,
+    double height,
+    double weight,
+  ) async {
     try {
       final Map<String, dynamic> args = {
         'deviceType': deviceType,
@@ -307,6 +312,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Unbind device
+  /// [mac] Device MAC address
   Future<void> unbind(String mac) async {
     try {
       final Map<String, dynamic> args = {'mac': mac};
@@ -316,6 +323,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Cancel binding
+  /// [mac] Device MAC address
   Future<void> cancelBind(String mac) async {
     try {
       final Map<String, dynamic> args = {'mac': mac};
@@ -325,6 +334,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Disconnect device
   Future<void> disConnectDevice() async {
     try {
       return await _channel.invokeMethod('disConnectDevice');
@@ -333,6 +343,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Reconnect device
   Future<void> reconnectDevice() async {
     try {
       return await _channel.invokeMethod('reconnectDevice');
@@ -341,6 +352,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Reset device (Factory reset)
   Future<void> resetDevice() async {
     try {
       return await _channel.invokeMethod('resetDevice');
@@ -349,6 +361,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Shutdown device
   Future<void> shutdown() async {
     try {
       return await _channel.invokeMethod('shutdown');
@@ -357,6 +370,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Get device information
+  /// Returns [DeviceInfo] object containing firmware version, model, etc.
   Future<DeviceInfo?> getDeviceInfo() async {
     try {
       final result = await _channel.invokeMethod('getDeviceInfo');
@@ -372,6 +387,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Get device battery and status
+  /// Returns [DeviceBattery] object
   Future<DeviceBattery?> getDeviceBattery() async {
     try {
       final result = await _channel.invokeMethod('getDeviceBattery');
@@ -387,6 +404,8 @@ class FlutterWearKit {
     return null;
   }
 
+  /// Get device basic ability configuration
+  /// Returns [DeviceAbilityBean] object describing supported features
   Future<DeviceAbilityBean> getDeviceAbility() async {
     try {
       final result = await _channel.invokeMethod('getDeviceAbility');
@@ -402,6 +421,8 @@ class FlutterWearKit {
     return DeviceAbilityBean();
   }
 
+  /// Get device health monitoring ability configuration
+  /// Returns [DeviceHealthAbilityBean] object
   Future<DeviceHealthAbilityBean> getDeviceHealthAbility() async {
     try {
       final result = await _channel.invokeMethod('getDeviceHealthAbility');
@@ -417,6 +438,8 @@ class FlutterWearKit {
     return DeviceHealthAbilityBean();
   }
 
+  /// Send camera status message
+  /// [status] Camera status code
   Future<void> sendCameraMessage(int status) async {
     try {
       final Map<String, dynamic> args = {'status': status};
@@ -426,6 +449,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if device supports camera preview
   Future<bool> isCameraSupportPreview() async {
     try {
       final result = await _channel.invokeMethod('isCameraSupportPreview');
@@ -436,6 +460,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Start camera preview
+  /// [fps] Preview frame rate
   Future<void> startCameraPreview(int fps) async {
     try {
       final Map<String, dynamic> args = {'fps': fps};
@@ -445,6 +471,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Stop camera preview
   Future<void> stopCameraPreview() async {
     try {
       return await _channel.invokeMethod('stopCameraPreview');
@@ -453,6 +480,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Update camera preview data
+  /// [args] Preview data arguments
   Future<void> updateCameraPreview(Map<String, dynamic> args) async {
     try {
       return await _channel.invokeMethod('updateCameraPreview', args);
@@ -461,6 +490,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Find watch (Device vibrates or rings)
   Future<void> findWatch() async {
     try {
       return await _channel.invokeMethod('findWatch');
@@ -469,6 +499,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Stop finding watch
   Future<void> stopFindWatch() async {
     try {
       return await _channel.invokeMethod('stopFindWatch');
@@ -477,6 +508,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get maximum number of common contacts
   Future<int> getContactsCommonMaxNumber() async {
     try {
       final result = await _channel.invokeMethod('getContactsCommonMaxNumber');
@@ -487,6 +519,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get maximum number of emergency contacts
   Future<int> getContactsEmergencyMaxNumber() async {
     try {
       final result = await _channel.invokeMethod(
@@ -499,6 +532,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Request common contacts list
   Future<CommonContactList?> requestContactsCommon() async {
     try {
       final result = await _channel.invokeMethod('requestContactsCommon');
@@ -515,6 +549,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Request emergency contacts list
   Future<EmergencyContactList?> requestContactsEmergency() async {
     try {
       final result = await _channel.invokeMethod('requestContactsEmergency');
@@ -531,6 +566,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set common contacts
+  /// [commonContacts] List of contacts
   Future<void> setContactsCommon(List<Contacts> commonContacts) async {
     try {
       if (Platform.isAndroid) {
@@ -552,6 +589,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set emergency contacts
+  /// [emergencyContacts] List of contacts
   Future<void> setContactsEmergency(List<Contacts> emergencyContacts) async {
     try {
       if (Platform.isAndroid) {
@@ -573,6 +612,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Start OTA update
+  /// [filePath] Firmware file path
   Future<void> ota(String filePath) async {
     try {
       final Map<String, dynamic> args = {'filePath': filePath};
@@ -582,6 +623,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if song push is supported
   Future<bool> isSupportSongPush() async {
     try {
       final result = await _channel.invokeMethod('isSupportSongPush');
@@ -594,6 +636,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if raise-to-wake period setting is supported
   Future<bool> isSupportWakeupPeriod() async {
     try {
       final result = await _channel.invokeMethod('isSupportWakeupPeriod');
@@ -604,6 +647,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get raise-to-wake configuration
   Future<WKRaiseWakeupConfig> getRaiseWakeupConfig() async {
     try {
       final result = await _channel.invokeMethod('getRaiseWakeupConfig');
@@ -614,6 +658,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Update raise-to-wake configuration
+  /// [config] Raise-to-wake configuration object
   Future<void> updateRaiseWakeupConfig(WKRaiseWakeupConfig config) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(config)};
@@ -625,6 +671,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if a specific function is enabled
+  /// [flag] Function flag
   Future<bool> isEnabledFunctionAbility(int flag) async {
     try {
       final Map<String, dynamic> args = {'flag': flag};
@@ -639,6 +687,9 @@ class FlutterWearKit {
     }
   }
 
+  /// Update enablement status of a specific function
+  /// [flag] Function flag
+  /// [isEnabled] Whether to enable
   Future<void> updateFunctionAbility(int flag, bool isEnabled) async {
     try {
       final Map<String, dynamic> args = {'flag': flag, 'isEnabled': isEnabled};
@@ -650,6 +701,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if weather function is supported
   Future<bool> isSupportWeather() async {
     try {
       final result = await _channel.invokeMethod('isSupportWeather');
@@ -660,6 +712,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Send weather data
+  /// [bean] Weather info object
   Future<void> sendWeatherData(WeatherInfo bean) async {
     try {
       final Map<String, dynamic> args = {'weatherData': jsonEncode(bean)};
@@ -670,6 +724,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set telephony function switch
+  /// [flag] true: Enable, false: Disable
   Future<bool> setTelephonyConfig(bool flag) async {
     try {
       final Map<String, dynamic> args = {'telephonyEnabled': flag};
@@ -681,7 +737,7 @@ class FlutterWearKit {
     }
   }
 
-  /// 从 Native 获取 DataStore 数据 (用于迁移)
+  /// Fetch DataStore data from Native (For migration)
   Future<Map<String, dynamic>> fetchAndroidData() async {
     try {
       final result = await _channel.invokeMethod('getPreferencesData');
@@ -698,6 +754,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get maximum number of alarms
   Future<int> getMaxAlarmCount() async {
     try {
       final result = await _channel.invokeMethod('getMaxAlarmCount');
@@ -708,6 +765,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get maximum bytes for alarm label
   Future<int> getLabelMaxBytes() async {
     try {
       final result = await _channel.invokeMethod('getLabelMaxBytes');
@@ -718,6 +776,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get alarm list
   Future<List<AlarmBean>?> getAlarms() async {
     try {
       final String jsonString = await _channel.invokeMethod('getAlarmList');
@@ -729,6 +788,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Update alarm list
+  /// [alarmData] Alarm list data
   Future<void> updateAlarm(List<AlarmBean>? alarmData) async {
     try {
       if (Platform.isAndroid) {
@@ -746,6 +807,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Delete specific alarm
+  /// [alarmId] Alarm ID
   Future<bool> deleteAlarm(int alarmId) async {
     try {
       final Map<String, dynamic> args = {'id': alarmId};
@@ -757,6 +820,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get activity data attributes supported by device (steps, distance, calories, etc.)
   Future<List<WKActivityAttribute>> getActivityAttributes() async {
     try {
       String jsonString = await _channel.invokeMethod('getActivityAttributes');
@@ -792,10 +856,13 @@ class FlutterWearKit {
     }
   }
 
+  /// Calculate sleep data
+  /// [list] Raw sleep data
+  /// [algorithm] Algorithm version
   Future<WKSleepDaily> sleepCalculate(
-      List<WKSleepItem> list,
-      int algorithm,
-      ) async {
+    List<WKSleepItem> list,
+    int algorithm,
+  ) async {
     try {
       final Map<String, dynamic> args = {
         'jsonList': jsonEncode(list),
@@ -816,6 +883,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if data is syncing
   Future<bool> isDataSyncing() async {
     try {
       final result = await _channel.invokeMethod('isDataSyncing');
@@ -826,6 +894,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Trigger data sync
   Future<void> syncData() async {
     try {
       return await _channel.invokeMethod('syncData');
@@ -834,6 +903,10 @@ class FlutterWearKit {
     }
   }
 
+  /// Write log
+  /// [tag] Log tag
+  /// [log] Log content
+  /// [level] Log level
   Future<void> writeLog(String tag, String log, int level) async {
     try {
       final Map<String, dynamic> args = {
@@ -847,6 +920,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Flush log buffer
   Future<bool> flushLog() async {
     try {
       final result = await _channel.invokeMethod('flushLog');
@@ -857,6 +931,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get monitor configuration (sedentary/drink water, etc.)
   Future<WKMonitorConfig> getMonitorConfig() async {
     try {
       final result = await _channel.invokeMethod('getMonitorConfig');
@@ -868,6 +943,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set monitor configuration
+  /// [config] Monitor configuration object
   Future<void> setMonitorConfig(WKMonitorConfig config) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(config)};
@@ -877,6 +954,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if time period configuration is supported
   Future<bool> isSupportTimePeriod() async {
     try {
       final result = await _channel.invokeMethod('isSupportTimePeriod');
@@ -889,6 +967,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if time interval configuration is supported
   Future<bool> isSupportTimeInterval() async {
     try {
       final result = await _channel.invokeMethod('isSupportTimeInterval');
@@ -901,6 +980,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if alarm configuration is supported
   Future<bool> isSupportAlarmConfig() async {
     try {
       final result = await _channel.invokeMethod('isSupportAlarmConfig');
@@ -911,6 +991,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get heart rate alarm configuration
   Future<WkHeartRateAlarmConfig> getHeartAlarmConfig() async {
     try {
       final result = await _channel.invokeMethod('getHeartAlarmConfig');
@@ -925,6 +1006,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set heart rate alarm configuration
+  /// [config] Heart rate alarm configuration object
   Future<void> setHeartAlarmConfig(WkHeartRateAlarmConfig config) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(config)};
@@ -934,6 +1017,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if max heart rate threshold is supported
   Future<bool> isSupportHRMaxThreshold() async {
     try {
       final result = await _channel.invokeMethod('isSupportHRMaxThreshold');
@@ -944,6 +1028,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if min heart rate configuration is supported
   Future<bool> isSupportHRMinValueConfig() async {
     try {
       final result = await _channel.invokeMethod('isSupportHRMinValueConfig');
@@ -954,6 +1039,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get blood oxygen monitor configuration
   Future<WKMonitorConfig> getBOMonitorConfig() async {
     try {
       final result = await _channel.invokeMethod('getBOMonitorConfig');
@@ -965,6 +1051,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set blood oxygen monitor configuration
+  /// [config] Monitor configuration object
   Future<void> setBOMonitorConfig(WKMonitorConfig config) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(config)};
@@ -974,6 +1062,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if blood oxygen monitor time period is supported
   Future<bool> isSupportBOTimePeriod() async {
     try {
       final result = await _channel.invokeMethod('isSupportBOTimePeriod');
@@ -984,6 +1073,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if blood oxygen monitor time interval is supported
   Future<bool> isSupportBOTimeInterval() async {
     try {
       final result = await _channel.invokeMethod('isSupportBOTimeInterval');
@@ -994,6 +1084,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get blood pressure monitor configuration
   Future<WKMonitorConfig> getBPMonitorConfig() async {
     try {
       final result = await _channel.invokeMethod('getBPMonitorConfig');
@@ -1005,6 +1096,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set blood pressure monitor configuration
+  /// [config] Monitor configuration object
   Future<void> setBPMonitorConfig(WKMonitorConfig config) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(config)};
@@ -1014,6 +1107,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if blood pressure monitor time period is supported
   Future<bool> isSupportBPTimePeriod() async {
     try {
       final result = await _channel.invokeMethod('isSupportBPTimePeriod');
@@ -1024,6 +1118,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if blood pressure monitor time interval is supported
   Future<bool> isSupportBPTimeInterval() async {
     try {
       final result = await _channel.invokeMethod('isSupportBPTimeInterval');
@@ -1034,6 +1129,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get pressure monitor configuration
   Future<WKMonitorConfig> getPressureMonitorConfig() async {
     try {
       final result = await _channel.invokeMethod('getPressureMonitorConfig');
@@ -1047,6 +1143,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set pressure monitor configuration
+  /// [config] Monitor configuration object
   Future<void> setPressureMonitorConfig(WKMonitorConfig config) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(config)};
@@ -1056,6 +1154,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if pressure monitor time period is supported
   Future<bool> isSupportPressureTimePeriod() async {
     try {
       final result = await _channel.invokeMethod('isSupportPressureTimePeriod');
@@ -1066,6 +1165,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if pressure monitor time interval is supported
   Future<bool> isSupportPressureTimeInterval() async {
     try {
       final result = await _channel.invokeMethod(
@@ -1078,6 +1178,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if isolate monitor configuration (independent configuration)
   Future<bool> isIsolateMonitorConfig() async {
     try {
       final result = await _channel.invokeMethod('isIsolateMonitorConfig');
@@ -1088,6 +1189,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Sync exercise goal configuration
+  /// [exerciseGoal] Exercise goal object
   Future<void> syncGoalConfig(ExerciseGoal exerciseGoal) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(exerciseGoal)};
@@ -1097,6 +1200,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get exercise goal configuration
   Future<ExerciseGoal> getGoalConfig() async {
     try {
       final result = await _channel.invokeMethod('getGoalConfig');
@@ -1108,6 +1212,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Sync unit configuration (Metric/Imperial)
+  /// [config] Unit configuration object
   Future<void> syncUnitConfig(UnitConfig config) async {
     try {
       final Map<String, bool> args = {
@@ -1120,6 +1226,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if disabled reminders check is supported
   Future<bool> isSupportDisabledReminds() async {
     try {
       final result = await _channel.invokeMethod('isSupportDisabledReminds');
@@ -1130,6 +1237,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Start heart rate measurement
   Future<void> startHeartRateMeasure() async {
     try {
       return await _channel.invokeMethod('startHeartRateMeasure');
@@ -1138,6 +1246,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Stop heart rate measurement
   Future<void> stopHeartRateMeasure() async {
     try {
       return await _channel.invokeMethod('stopHeartRateMeasure');
@@ -1146,6 +1255,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Start blood pressure measurement
   Future<void> startBPMeasure() async {
     try {
       return await _channel.invokeMethod('startBPMeasure');
@@ -1154,6 +1264,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Stop blood pressure measurement
   Future<void> stopBPMeasure() async {
     try {
       return await _channel.invokeMethod('stopBPMeasure');
@@ -1162,6 +1273,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Start blood oxygen measurement
   Future<void> startBOMeasure() async {
     try {
       return await _channel.invokeMethod('startBOMeasure');
@@ -1170,6 +1282,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Stop blood oxygen measurement
   Future<void> stopBOMeasure() async {
     try {
       return await _channel.invokeMethod('stopBOMeasure');
@@ -1178,6 +1291,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Start pressure measurement
   Future<void> startPressureMeasure() async {
     try {
       return await _channel.invokeMethod('startPressureMeasure');
@@ -1186,6 +1300,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Stop pressure measurement
   Future<void> stopPressureMeasure() async {
     try {
       return await _channel.invokeMethod('stopPressureMeasure');
@@ -1194,6 +1309,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if heart rate measurement is supported
   Future<bool> isSupportHRMeasure() async {
     try {
       final result = await _channel.invokeMethod('isSupportHRMeasure');
@@ -1204,6 +1320,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if blood pressure measurement is supported
   Future<bool> isSupportBPMeasure() async {
     try {
       final result = await _channel.invokeMethod('isSupportBPMeasure');
@@ -1214,6 +1331,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if blood oxygen measurement is supported
   Future<bool> isSupportBOMeasure() async {
     try {
       final result = await _channel.invokeMethod('isSupportBOMeasure');
@@ -1224,6 +1342,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if pressure measurement is supported
   Future<bool> isSupportPressureMeasure() async {
     try {
       final result = await _channel.invokeMethod('isSupportPressureMeasure');
@@ -1234,6 +1353,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get temperature monitor configuration
   Future<WKMonitorConfig> getTemperatureConfig() async {
     try {
       final result = await _channel.invokeMethod('getTemperatureConfig');
@@ -1245,6 +1365,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set temperature monitor configuration
+  /// [config] Monitor configuration object
   Future<void> setTemperatureConfig(WKMonitorConfig config) async {
     try {
       final Map<String, dynamic> args = {'config': jsonEncode(config)};
@@ -1254,6 +1376,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if temperature monitor time period is supported
   Future<bool> isSupportTemperatureTimePeriod() async {
     try {
       final result = await _channel.invokeMethod(
@@ -1266,6 +1389,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if temperature monitor time interval is supported
   Future<bool> isSupportTemperatureTimeInterval() async {
     try {
       final result = await _channel.invokeMethod(
@@ -1278,6 +1402,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if dial function is supported
   Future<bool> isSupportDial() async {
     try {
       final result = await _channel.invokeMethod('isSupportDial');
@@ -1288,6 +1413,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set as main dial
+  /// [dialId] Dial ID
   Future<void> setAsMainDial(String dialId) async {
     try {
       final Map<String, dynamic> args = {'dialId': dialId};
@@ -1297,6 +1424,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Uninstall dial
+  /// [dialId] Dial ID
   Future<void> uninstallDial(String dialId) async {
     try {
       final Map<String, dynamic> args = {'dialId': dialId};
@@ -1306,6 +1435,9 @@ class FlutterWearKit {
     }
   }
 
+  /// Install dial
+  /// [dialId] Dial ID
+  /// [filePath] Dial file path
   Future<void> installDial(String dialId, String filePath) async {
     try {
       final Map<String, dynamic> args = {
@@ -1318,6 +1450,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Request online dial list
   Future<DialInfoList?> requestDials() async {
     try {
       final result = await _channel.invokeMethod('requestDials');
@@ -1333,6 +1466,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if carousel dial is supported
   Future<bool> isSupportCarouselDial() async {
     try {
       final result = await _channel.invokeMethod('isSupportCarouselDial');
@@ -1343,6 +1477,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Request dial resources (constraint configuration)
   Future<DialStyleConstraint?> requestResources() async {
     try {
       var result = await _channel.invokeMethod('requestResources');
@@ -1353,15 +1488,23 @@ class FlutterWearKit {
     }
   }
 
+  /// Create and install custom dial
+  /// [dialStyleConstraint] Dial style constraint
+  /// [styleIndex] Style index
+  /// [positionIndex] Position index
+  /// [customImageUrl] Custom background image URL
+  /// [cropRect] Crop area
+  /// [duration] Duration
+  /// [trimStart] Trim start time
   Future<bool> createAndInstall(
-      DialStyleConstraint dialStyleConstraint,
-      List<int> styleIndex,
-      List<int> positionIndex,
-      List<String> customImageUrl, {
-        Rect? cropRect,
-        int? duration,
-        int? trimStart,
-      }) async {
+    DialStyleConstraint dialStyleConstraint,
+    List<int> styleIndex,
+    List<int> positionIndex,
+    List<String> customImageUrl, {
+    Rect? cropRect,
+    int? duration,
+    int? trimStart,
+  }) async {
     try {
       final Map<String, dynamic> args = {
         "dialStyleConstraint": jsonEncode(dialStyleConstraint),
@@ -1393,6 +1536,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get maximum number of custom reminders
   Future<int> getCustomRemindMaxNumber() async {
     try {
       final result = await _channel.invokeMethod('getCustomRemindMaxNumber');
@@ -1403,6 +1547,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get reminder list
   Future<List<RemindBean>?> getReminds() async {
     try {
       final String jsonString = await _channel.invokeMethod('getReminds');
@@ -1414,6 +1559,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Update reminder list
+  /// [data] Reminder list data
   Future<void> updateReminds(List<RemindBean>? data) async {
     try {
       return await _channel.invokeMethod('setReminds', <String, dynamic>{
@@ -1424,6 +1571,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Delete custom reminder
+  /// [typeId] Reminder type ID
   Future<bool> deleteRemind(int typeId) async {
     try {
       final Map<String, dynamic> args = {'typeId': typeId};
@@ -1435,6 +1584,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Update or add single reminder
+  /// [bean] Reminder object
   Future<bool> updateRemind(RemindBean bean) async {
     try {
       return await _channel.invokeMethod('updateRemind', <String, dynamic>{
@@ -1446,6 +1597,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Create custom reminder
+  /// [data] Reminder list data
   Future<RemindBean?> createCustomRemind(List<RemindBean>? data) async {
     try {
       String jsonString = await _channel.invokeMethod(
@@ -1460,6 +1613,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if Notification Listener Service (NLS) is enabled
   Future<bool> isEnabledNLS() async {
     try {
       final result = await _channel.invokeMethod('isEnabledNLS');
@@ -1470,6 +1624,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if app notification is supported
+  /// [packageName] App package name
   Future<bool> isSupportAppNotification(String packageName) async {
     try {
       final Map<String, dynamic> args = {'packageName': packageName};
@@ -1484,6 +1640,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set app notification switch
+  /// [flags] Notification switch flags
   Future<void> setAppNotifications(int flags) async {
     try {
       await _channel.invokeMethod('setAppNotifications', flags);
@@ -1492,9 +1650,12 @@ class FlutterWearKit {
     }
   }
 
+  /// Get app notification support status
+  /// [packageTypes] App type list
+  /// Returns Map, key is app type, value is whether supported
   Future<Map<int, bool>> getSupportAppNotifications(
-      List<int> packageTypes,
-      ) async {
+    List<int> packageTypes,
+  ) async {
     try {
       final result = await _channel.invokeMethod(
         'getSupportAppNotifications',
@@ -1517,6 +1678,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Open system notification settings page (Request NLS permission)
   Future<void> openNotificationSetting() async {
     try {
       return await _channel.invokeMethod('requestNLSPermission');
@@ -1525,6 +1687,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Get business card list
+  /// Returns Map, key is card type, value is content
   Future<Map<String, String>?> getBusinessCard() async {
     try {
       final String response = await _channel.invokeMethod('getBusinessCard');
@@ -1535,6 +1699,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Set business card
+  /// [data] Business card data Map
   Future<void> setBusinessCard(Map<String, String>? data) async {
     try {
       return await _channel.invokeMethod('setBusinessCard', <String, dynamic>{
@@ -1545,6 +1711,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Get wallet data
+  /// Returns Map, key is wallet type, value is content
   Future<Map<String, String>?> getWallet() async {
     try {
       final String response = await _channel.invokeMethod('getWallet');
@@ -1555,16 +1723,19 @@ class FlutterWearKit {
     }
   }
 
+  /// Set wallet data
+  /// [data] Wallet data Map
   Future<void> setWallet(Map<String, String>? data) async {
     try {
       return await _channel.invokeMethod('setWallet', <String, dynamic>{
         'cards': jsonEncode(data),
       });
     } on PlatformException catch (e) {
-      debugPrint("钱包-- 设置卡片 失败: ${e.message}");
+      debugPrint(" Set wallet data fail: ${e.message}");
     }
   }
 
+  /// Get list of sports types supported by device
   Future<List<int>?> getSupportSports() async {
     try {
       return await _channel.invokeMethod('getSupportSports');
@@ -1574,6 +1745,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Get list of sports currently installed on device
   Future<List<SportPushBean>?> getDeviceSports() async {
     try {
       final String jsonString = await _channel.invokeMethod('getDeviceSports');
@@ -1585,6 +1757,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Push sport to device
+  /// [filePath] Sport file path
   Future<bool> pushSport(String filePath) async {
     try {
       final Map<String, dynamic> args = {'filePath': filePath};
@@ -1595,6 +1769,7 @@ class FlutterWearKit {
     }
   }
 
+  /// Check if device log extraction is supported
   Future<bool> isSupportDeviceLog() async {
     try {
       return await _channel.invokeMethod('isSupportDeviceLog');
@@ -1604,22 +1779,16 @@ class FlutterWearKit {
     }
   }
 
+  /// Get device log
   Future<void> getDeviceLog() async {
     try {
       return await _channel.invokeMethod('getDeviceLog');
     } on PlatformException catch (e) {
-      debugPrint("获取设备日志 失败: ${e.message}");
+      debugPrint("get device log failed : ${e.message}");
     }
   }
 
-  Future<void> startDeviceService() async {
-    try {
-      return await _channel.invokeMethod('startDeviceService');
-    } on PlatformException catch (e) {
-      debugPrint("startDeviceService 失败: ${e.message}");
-    }
-  }
-
+  /// Check if women health function is supported
   Future<bool> isSupportWomenHealth() async {
     try {
       return await _channel.invokeMethod('isSupportWomenHealth');
@@ -1629,6 +1798,8 @@ class FlutterWearKit {
     }
   }
 
+  /// Sync women health configuration
+  /// [config] Women health configuration object
   Future<void> syncWomenHealthConfig(WomenHealthConfig? config) async {
     try {
       final Map<String, String?> args = {'config': jsonEncode(config)};
@@ -1638,12 +1809,17 @@ class FlutterWearKit {
     }
   }
 
+  /// Update user info
+  /// [sex] Sex (true: Male, false: Female)
+  /// [age] Age 0:male 1:female
+  /// [height] Height (cm)
+  /// [weight] Weight (kg)
   Future<void> updateUserInfo(
-      bool sex,
-      int age,
-      double height,
-      double weight,
-      ) async {
+    bool sex,
+    int age,
+    double height,
+    double weight,
+  ) async {
     try {
       final Map<String, dynamic> args = {
         'sex': sex,
@@ -1651,39 +1827,41 @@ class FlutterWearKit {
         'height': height,
         'weight': weight,
       };
-      debugPrint("更新用户信息 : $args");
+      debugPrint("update user info : $args");
       return await _channel.invokeMethod('updateUserInfo', args);
     } on PlatformException catch (e) {
       debugPrint("Failed to call native updateUserInfo: ${e.message}");
     }
   }
 
+  /// Check if dynamic video background is supported
   Future<bool> isSupportVideoBackground() async {
     try {
       return await _channel.invokeMethod('isSupportVideoBackground');
     } on PlatformException catch (e) {
-      debugPrint("设备是否支持视频表盘 失败: ${e.message}");
       return false;
     }
   }
 
+  /// Get max duration for video dial
   Future<int> getVideoDialDuration() async {
     try {
       final result = await _channel.invokeMethod('getVideoDialDuration');
       return result as int;
     } on PlatformException catch (e) {
-      debugPrint("获取视频表盘时长 失败: ${e.message}");
+      debugPrint("get max duration for video dial fail: ${e.message}");
       return 0;
     }
   }
 
+  /// Get free space for dials
   Future<int> getDialFree() async {
     try {
       final result = await _channel.invokeMethod('getDialFree');
-      debugPrint("获取表盘空间 : $result");
+      debugPrint("free space : $result");
       return result as int;
     } on PlatformException catch (e) {
-      debugPrint("获取表盘空间 失败: ${e.message}");
+      debugPrint("get free space for dials fail: ${e.message}");
       return 0;
     }
   }

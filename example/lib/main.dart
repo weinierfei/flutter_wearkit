@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_wearkit/flutter_wearkit.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +17,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  String _platformVersion = 'Android';
   final _flutterWearkitPlugin = FlutterWearKit();
 
   // Status logs
@@ -25,8 +26,21 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _requestPermissions();
     _initListeners();
+  }
+
+  Future<void> _requestPermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.bluetooth,
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.bluetoothAdvertise,
+      Permission.location,
+      Permission.contacts,
+      Permission.sms,
+    ].request();
+    debugPrint("Permission statuses: $statuses");
   }
 
   void _initListeners() {
@@ -46,24 +60,6 @@ class _MyAppState extends State<MyApp> {
       _log = "$message\n$_log";
     });
     debugPrint(message);
-  }
-
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    try {
-      platformVersion =
-          await _flutterWearkitPlugin.getPlatformVersion() ??
-          'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-      _appendLog("Platform Version: $_platformVersion");
-    });
   }
 
   @override
@@ -87,10 +83,10 @@ class _MyAppState extends State<MyApp> {
                         // Note: Real testing requires a valid MAC and device.
                         _appendLog("Connecting...");
                         await _flutterWearkitPlugin.connectDevice(
-                          0, // deviceType
+                          3, // deviceType
                           0, // authType (Bind)
                           null,
-                          "AA:BB:CC:DD:EE:FF", // Replace with real MAC
+                          "71:AA:DE:4C:0A:4E", // Replace with real MAC
                           "user_123", // userId
                           true, // Sex
                           25, // Age
