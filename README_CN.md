@@ -10,7 +10,7 @@
   flutter_wearkit:
     git:
       url: https://github.com/weinierfei/flutter_wearkit.git
-      ref: v1.0.1
+      ref: v1.0.0
 ```
 
 ## 1. Android 原生配置指南
